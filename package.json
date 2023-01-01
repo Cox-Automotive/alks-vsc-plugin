@@ -17,31 +17,25 @@
     "commands": [
       {
         "command": "alks-vsc.newSession",
-        "title": "New AWS Session"
+        "title": "ALKS: New Session"
       },
       {
         "command": "alks-vsc.newConsole",
-        "title": "AWS Console"
+        "title": "ALKS: Open Console"
       }
     ],
     "configuration": {
       "title": "ALKS",
       "properties": {
         "alks.server": {
-          "type": [
-            "string",
-            null
-          ],
-          "default": null,
+          "type": "string",
+          "default": "",
           "scope": "resource",
           "description": "URL to ALKS Server API"
         },
         "alks.token": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null,
+          "type": "string",
+          "default": "",
           "scope": "machine",
           "description": "ALKS refresh token. Generate on the ALKS Website."
         },

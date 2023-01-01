@@ -3,8 +3,20 @@ import * as vscode from "vscode";
 import { generateConsoleUrl } from "./alks-console";
 import { getSettings } from "./settings";
 
-const account = "";
-const role = "IAMAdmin";
+const getAccountRole = async (): Promise<[string, string]> => {
+  const settings = getSettings();
+  let acct = await vscode.window.showQuickPick(settings.accounts);
+  const role = acct?.match(/(?<=\/).+?(?=\s)/g)?.[0];
+  acct = acct?.split("/")[0];
+
+  if (!acct || !role) {
+    throw Error(
+      'Invalid account selected. Account should be in format "#####/role - name"'
+    );
+  }
+
+  return [acct, role];
+};
 
 const getALKSClient = async (): Promise<ALKS.Alks> => {
   let client: ALKS.Alks;
@@ -50,6 +62,8 @@ const newSession = async () => {
     return;
   }
 
+  const [account, role] = await getAccountRole();
+
   try {
     console.log(
       `Requesting STS credentials for "${account}" with role "${role}.`
@@ -75,6 +89,7 @@ const newSession = async () => {
 };
 
 const newConsole = async () => {
+  const settings = getSettings();
   let client: ALKS.Alks;
   let keys: any;
 
@@ -84,6 +99,8 @@ const newConsole = async () => {
     vscode.window.showErrorMessage(e?.message);
     return;
   }
+
+  const [account, role] = await getAccountRole();
 
   try {
     console.log(
