@@ -1,25 +1,21 @@
 import * as ALKS from "alks.js";
 import * as vscode from "vscode";
 import { generateConsoleUrl } from "./alks-console";
+import { getSettings } from "./settings";
 
-const alksParams = {
-  baseUrl: "", // FIXME
-  userAgent: "vsc-plugin",
-};
-
-const account = ""; // FIXME
-const role = ""; // FIXME
-const refreshToken = ""; // FIXME
+const account = "";
+const role = "IAMAdmin";
 
 const getALKSClient = async (): Promise<ALKS.Alks> => {
   let client: ALKS.Alks;
   let accessToken: ALKS.AccessToken;
+  const settings = getSettings();
 
   try {
-    client = ALKS.create(alksParams as ALKS.AlksProps);
+    client = ALKS.create({ baseUrl: settings.server } as ALKS.AlksProps);
     console.log("Exchanging refresh token for access token.");
     accessToken = await client.getAccessToken({
-      refreshToken,
+      refreshToken: settings.token,
     });
     console.log(`Got access token!`);
   } catch (e: any) {
@@ -32,7 +28,7 @@ const getALKSClient = async (): Promise<ALKS.Alks> => {
   try {
     console.log(`Creating ALKS client with access token auth.`);
     client = ALKS.create({
-      ...alksParams,
+      baseUrl: settings.server,
       accessToken: accessToken.accessToken,
     });
   } catch (e: any) {
@@ -71,7 +67,11 @@ const newSession = async () => {
     return;
   }
 
-  vscode.window.showInformationMessage(JSON.stringify(keys));
+  const exporty = `export AWS_ACCESS_KEY_ID=${keys.accessKey} && export AWS_SECRET_ACCESS_KEY=${keys.secretKey} && export AWS_SESSION_TOKEN=${keys.sessionToken}`;
+  vscode.env.clipboard.writeText(exporty);
+  vscode.window.showInformationMessage(
+    "AWS terminal credentials are now on your clipboard."
+  );
 };
 
 const newConsole = async () => {
@@ -118,6 +118,26 @@ const newConsole = async () => {
 export function activate(context: vscode.ExtensionContext) {
   console.log("[[ ALKS VSC PLUGIN ACTIVATED ]]\n");
 
+  const settings = getSettings();
+
+  if (!settings.server) {
+    return vscode.window.showErrorMessage(
+      "Please setup alks.server in settings."
+    );
+  } else if (!settings.token) {
+    return vscode.window.showErrorMessage(
+      "Please setup alks.token in settings."
+    );
+  } else if (
+    !settings.accounts ||
+    !Array.isArray(settings.accounts) ||
+    !settings.accounts.length
+  ) {
+    return vscode.window.showErrorMessage(
+      "Please setup alks.accounts in settings."
+    );
+  }
+
   context.subscriptions.push(
     vscode.commands.registerCommand("alks-vsc.newSession", newSession)
   );
@@ -127,4 +147,5 @@ export function activate(context: vscode.ExtensionContext) {
   );
 }
 
+// This method is called when your extension is deactivated
 export function deactivate() {}
