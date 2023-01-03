@@ -1,46 +1,39 @@
 import * as ALKS from "alks.js";
 import * as vscode from "vscode";
 import { generateConsoleUrl } from "./alks-console";
-import { getSettings } from "./settings";
+import { AuthSettings } from "./settings";
 
-const getAccountRole = async (): Promise<[string, string]> => {
-  const settings = getSettings();
-  let acct = await vscode.window.showQuickPick(settings.accounts);
-  const role = acct?.match(/(?<=\/).+?(?=\s)/g)?.[0];
-  acct = acct?.split("/")[0];
-
-  if (!acct || !role) {
-    throw Error(
-      'Invalid account selected. Account should be in format "#####/role - name"'
-    );
-  }
-
-  return [acct, role];
-};
+const account = "625218762371";
+const role = "IAMAdmin";
 
 const getALKSClient = async (): Promise<ALKS.Alks> => {
   let client: ALKS.Alks;
   let accessToken: ALKS.AccessToken;
-  const settings = getSettings();
 
   try {
-    client = ALKS.create({ baseUrl: settings.server } as ALKS.AlksProps);
-    console.log("Exchanging refresh token for access token.");
+    client = ALKS.create({
+      baseUrl: AuthSettings.instance.getServer(),
+    } as ALKS.AlksProps);
+    const refreshToken = await AuthSettings.instance.getRefreshToken();
+    console.log(`Exchanging refresh token for access token: "${refreshToken}"`);
     accessToken = await client.getAccessToken({
-      refreshToken: settings.token,
-    });
+      refreshToken,
+    } as ALKS.GetAccessTokenProps);
     console.log(`Got access token!`);
   } catch (e: any) {
     console.error(
-      `Error exchanging refresh token for access token: "${e?.message}"`
+      `Error exchanging refresh token for access token: "${e?.message}". Purging existing refresh token.`
     );
+    await AuthSettings.instance.deleteRefreshToken();
+
     throw new Error("Unable to authenticate token.");
   }
+  AuthSettings.instance.deleteRefreshToken();
 
   try {
     console.log(`Creating ALKS client with access token auth.`);
     client = ALKS.create({
-      baseUrl: settings.server,
+      baseUrl: AuthSettings.instance.getServer()!,
       accessToken: accessToken.accessToken,
     });
   } catch (e: any) {
@@ -52,6 +45,11 @@ const getALKSClient = async (): Promise<ALKS.Alks> => {
 };
 
 const newSession = async () => {
+  console.log("<new session>");
+  if (!(await validateSettings())) {
+    return;
+  }
+
   let client: ALKS.Alks;
   let keys: any;
 
@@ -61,8 +59,6 @@ const newSession = async () => {
     vscode.window.showErrorMessage(e?.message);
     return;
   }
-
-  const [account, role] = await getAccountRole();
 
   try {
     console.log(
@@ -88,11 +84,17 @@ const newSession = async () => {
   );
 };
 
-const newConsole = async () => {
-  const settings = getSettings();
+const openConsole = async () => {
+  console.log("<open console>");
+  if (!(await validateSettings())) {
+    return;
+  }
+
+  console.log("settings validated");
   let client: ALKS.Alks;
   let keys: any;
 
+  console.log("get alks client");
   try {
     client = await getALKSClient();
   } catch (e: any) {
@@ -100,7 +102,16 @@ const newConsole = async () => {
     return;
   }
 
-  const [account, role] = await getAccountRole();
+  const acct = await vscode.window.showQuickPick(
+    AuthSettings.instance.getAccounts()!
+  );
+  const role = acct?.match(/(?<=\/).+?(?=\s)/g)?.[0];
+
+  if (!acct || !role) {
+    return vscode.window.showErrorMessage(
+      'Invalid account selected. Account should be in format "#####/role - name"'
+    );
+  }
 
   try {
     console.log(
@@ -132,37 +143,72 @@ const newConsole = async () => {
   }
 };
 
-export function activate(context: vscode.ExtensionContext) {
-  console.log("[[ ALKS VSC PLUGIN ACTIVATED ]]\n");
+const handleRefreshToken = async (): Promise<boolean> => {
+  const token = await vscode.window.showInputBox({
+    placeHolder: "Refresh Token",
+    prompt:
+      "Please enter your ALKS refresh token. You can get this from the ALKS website.",
+  });
 
-  const settings = getSettings();
+  console.log(token);
 
-  if (!settings.server) {
-    return vscode.window.showErrorMessage(
-      "Please setup alks.server in settings."
-    );
-  } else if (!settings.token) {
-    return vscode.window.showErrorMessage(
-      "Please setup alks.token in settings."
-    );
-  } else if (
-    !settings.accounts ||
-    !Array.isArray(settings.accounts) ||
-    !settings.accounts.length
-  ) {
-    return vscode.window.showErrorMessage(
-      "Please setup alks.accounts in settings."
-    );
+  if (!token || !token.length) {
+    return false;
   }
+
+  try {
+    console.log("Validating refresh token from user.");
+    ALKS.getAccessToken({
+      baseUrl: AuthSettings.instance.getServer(),
+      refreshToken: token,
+    });
+  } catch (e: any) {
+    console.error(`Invalid resource token supplied: ${e.message}`);
+    return false;
+  }
+
+  console.log("Securely storing refresh token.");
+  AuthSettings.instance.storeRefreshToken(token);
+
+  return true;
+};
+
+const validateSettings = async (): Promise<boolean> => {
+  console.log("Validating extension settings");
+
+  if (!AuthSettings.instance.getServer()) {
+    vscode.window.showErrorMessage("Please setup alks.server in settings.");
+    return false;
+  }
+
+  const hasRefresh = await AuthSettings.instance.getRefreshToken();
+  const accounts = AuthSettings.instance.getAccounts();
+
+  if (!hasRefresh) {
+    const refreshTokenSetup = await handleRefreshToken();
+    if (!refreshTokenSetup) {
+      vscode.window.showErrorMessage("Invalid refresh token.");
+      return false;
+    }
+  } else if (!accounts || !Array.isArray(accounts) || !accounts.length) {
+    vscode.window.showErrorMessage("Please setup alks.accounts in settings.");
+    return false;
+  }
+
+  return true;
+};
+
+export async function activate(context: vscode.ExtensionContext) {
+  console.log("[[ ALKS VSC PLUGIN ACTIVATED ]]\n");
+  AuthSettings.init(context);
 
   context.subscriptions.push(
     vscode.commands.registerCommand("alks-vsc.newSession", newSession)
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("alks-vsc.newConsole", newConsole)
+    vscode.commands.registerCommand("alks-vsc.newConsole", openConsole)
   );
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
