@@ -1,7 +1,11 @@
 {
   "name": "alks-vsc",
-  "displayName": "ALKS Plugin",
-  "description": "ALKS plugin for VS Code",
+  "displayName": "ALKS",
+  "description": "Allows creation of ALKS sessions and AWS console access.",
+  "publisher": "CoxAuto",
+  "author": {
+    "name": "Antonelli"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
@@ -13,8 +17,11 @@
     "onCommand:alks-vsc.openSettings"
   ],
   "repository": {
-    "url": "https://github.com/Cox-Automotive/alks-vsc-plugin"
+    "type": "git",
+    "url": "https://github.com/Cox-Automotive/alks-vsc-plugin.git"
   },
+  "homepage": "https://github.com/Cox-Automotive/alks-vsc-plugin/blob/main/README.md",
+  "icon": "resources/logo.png",
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

@@ -16,7 +16,7 @@ export const openSettings = async () => {
     vscode.window.showInformationMessage("Accounts refreshed.");
   } else if (choice === "Logout") {
     console.log("Deleting auth token");
-    Settings.instance.deleteRefreshToken();
+    await Settings.instance.deleteRefreshToken();
     vscode.window.showInformationMessage("Logged out.");
   } else {
     console.log("Invalid settings selection");

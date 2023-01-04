@@ -8,12 +8,12 @@ import { Settings } from "../settings";
  * Creates a new ALKS session for the specified account and copys the credentials to the
  */
 export const newSession = async ():Promise<void> => {
-  console.log("<new session>");
+  console.log("[newSession] <new session>");
   try {
-    Settings.instance.validate();
+    await Settings.instance.validate();
   } catch (e: any) {
     vscode.window.showErrorMessage(e?.message);
-    return;
+    return await newSession();
   }
 
   let client: ALKS.Alks;
@@ -42,13 +42,17 @@ export const newSession = async ():Promise<void> => {
   try {
     const opts = { account, role, sessionTime: 1 };
     if (role.toLowerCase().includes("iam")) {
-      console.log(`Requesting IAM creds for "${account}" role "${role}"`);
+      console.log(
+        `[newSession] Requesting IAM creds for "${account}" role "${role}"`
+      );
       keys = await client.getIAMKeys(opts);
     } else {
-      console.log(`Requesting creds for "${account}" role "${role}"`);
+      console.log(
+        `[newSession] Requesting creds for "${account}" role "${role}"`
+      );
       keys = await client.getKeys(opts);
     }
-    console.log("Received STS credentials.");
+    console.log("[newSession] Received STS credentials.");
   } catch (e: any) {
     console.error(`Error getting keys: "${e?.message}"`);
     vscode.window.showErrorMessage("Unable to create session!");

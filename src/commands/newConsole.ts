@@ -3,17 +3,17 @@ import * as vscode from "vscode";
 import { getAccountAndRole, getALKSClient } from "../alks";
 import { generateConsoleUrl } from "../alks-console";
 import { Settings } from "../settings";
-console.log("<new console>");
+console.log("[newConsole] <new console>");
 
 /**
  * Creats a new AWS console session for the specified AWS account and opens it in the system's browser.
  */
-export const newConsole = async ():Promise<void> => {
+export const newConsole = async (): Promise<void> => {
   try {
-    Settings.instance.validate();
+    await Settings.instance.validate();
   } catch (e: any) {
     vscode.window.showErrorMessage(e?.message);
-    return;
+    return await newConsole();
   }
 
   let client: ALKS.Alks;
@@ -35,21 +35,25 @@ export const newConsole = async ():Promise<void> => {
     );
     [account, role] = await getAccountAndRole(rawAccount);
   } catch (e: any) {
-     vscode.window.showErrorMessage(e?.message);
-     return;
+    vscode.window.showErrorMessage(e?.message);
+    return;
   }
 
   try {
     const opts = { account, role, sessionTime: 1 };
     if (role.toLowerCase().includes("iam")) {
-      console.log(`Requesting IAM creds for "${account}" role "${role}"`);
+      console.log(
+        `[newConsole] Requesting IAM creds for "${account}" role "${role}"`
+      );
       keys = await client.getIAMKeys(opts);
     } else {
-      console.log(`Requesting creds for "${account}" role "${role}"`);
+      console.log(
+        `[newConsole] Requesting creds for "${account}" role "${role}"`
+      );
       keys = await client.getKeys(opts);
     }
 
-    console.log("Received STS credentials.");
+    console.log("[newConsole] Received STS credentials.");
   } catch (e: any) {
     console.error(`Error getting keys: "${e?.message}"`);
     vscode.window.showErrorMessage("Unable to create session!");

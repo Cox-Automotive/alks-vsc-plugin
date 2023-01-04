@@ -1,6 +1,6 @@
 import { Account as ALKSAccount } from "alks.js";
 import { ExtensionContext, SecretStorage, window, workspace } from "vscode";
-import { isValidRefreshToken } from "./alks";
+import { getAccounts, isValidRefreshToken } from "./alks";
 import { Cache } from "./cache";
 
 /**
@@ -27,8 +27,15 @@ export class Settings {
    */
   async storeRefreshToken(token?: string): Promise<void> {
     if (token) {
+      console.log(
+        "[settings:storeRefreshToken] Saving token to secret storage"
+      );
       this.refreshToken = token;
       await this.secretStorage.store("alks_token", token);
+    } else {
+      console.warn(
+        `[settings:storeRefreshToken] Tried to store invalid token: ${token}`
+      );
     }
   }
 
@@ -42,10 +49,10 @@ export class Settings {
     }
 
     if (!this.refreshToken) {
-      console.warn("Missing refresh token!");
+      console.warn("[settings:getRefreshToken] Missing refresh token!");
       return undefined;
     } else if (!this.refreshToken.length) {
-      console.warn("Empty refresh token!");
+      console.warn("[settings:getRefreshToken] Empty refresh token!");
       return undefined;
     }
 
@@ -58,6 +65,7 @@ export class Settings {
   async deleteRefreshToken(): Promise<void> {
     await this.secretStorage.store("alks_token", "");
     await this.secretStorage.delete("alks_token");
+    this.refreshToken = undefined;
   }
 
   /**
@@ -92,7 +100,7 @@ export class Settings {
    * @throws Error On invalid or missing settings.
    */
   async validate(): Promise<void> {
-    console.log("Validating extension settings");
+    console.log("[settings:validate] Validating extension settings");
 
     if (!this.getServer()) {
       throw new Error("Please setup alks.server in settings.");
@@ -101,12 +109,14 @@ export class Settings {
     const token = await this.getRefreshToken();
 
     if (token) {
+      console.log("[settings:validate] token good");
       const validToken = await isValidRefreshToken(token);
       if (!validToken) {
-        this.deleteRefreshToken();
-        throw new Error("Invalid refresh token.");
+        await this.deleteRefreshToken();
+        throw new Error("[settings:validate] Invalid refresh token.");
       }
     } else {
+      console.log("[settings:validate] token no");
       const token = await window.showInputBox({
         placeHolder: "Refresh Token",
         prompt:
@@ -122,9 +132,22 @@ export class Settings {
         throw new Error("Invalid refresh token.");
       }
 
-      console.log("Securely storing refresh token.");
+      console.log("[settings:validate] Securely storing refresh token.");
+      await this.storeRefreshToken(token);
 
-      this.storeRefreshToken(token);
+      console.log("[settings:validate] Caching accounts");
+      const cache = Cache.instance;
+      if (!cache.getCacheItem("accounts")) {
+        try {
+          const accounts = await getAccounts();
+          cache.setCacheItem("accounts", accounts);
+          console.log("[settings:validate] cached aws accounts");
+        } catch (e: any) {
+          console.error(
+            "[settings:validate] Error getting accounts to cache: ${e.message"
+          );
+        }
+      }
     }
   }
 }

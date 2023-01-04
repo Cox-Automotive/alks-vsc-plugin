@@ -16,11 +16,13 @@ export const getALKSClient = async (): Promise<ALKS.Alks> => {
       baseUrl: Settings.instance.getServer(),
     } as ALKS.AlksProps);
     const refreshToken = await Settings.instance.getRefreshToken();
-    console.log(`Exchanging refresh token for access token`);
+    console.log(
+      `[alks:getALKSClient] Exchanging refresh token for access token`
+    );
     accessToken = await client.getAccessToken({
       refreshToken,
     } as ALKS.GetAccessTokenProps);
-    console.log(`Got access token!`);
+    console.log(`[alks:getALKSClient] Got access token!`);
   } catch (e: any) {
     console.error(
       `Error exchanging refresh token for access token: "${e?.message}". Purging existing refresh token.`
@@ -31,7 +33,9 @@ export const getALKSClient = async (): Promise<ALKS.Alks> => {
   Settings.instance.deleteRefreshToken();
 
   try {
-    console.log(`Creating ALKS client with access token auth.`);
+    console.log(
+      `[alks:getALKSClient] Creating ALKS client with access token auth.`
+    );
     client = ALKS.create({
       baseUrl: Settings.instance.getServer()!,
       accessToken: accessToken.accessToken,
@@ -51,7 +55,9 @@ export const getALKSClient = async (): Promise<ALKS.Alks> => {
  */
 export const isValidRefreshToken = async (token: string): Promise<boolean> => {
   try {
-    console.log("Validating refresh token from user.");
+    console.log(
+      "[alks:isValidRefreshToken] Validating refresh token from user."
+    );
     await ALKS.getAccessToken({
       baseUrl: Settings.instance.getServer(),
       refreshToken: token,
