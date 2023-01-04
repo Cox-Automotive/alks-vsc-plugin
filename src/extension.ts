@@ -1,7 +1,8 @@
 import * as ALKS from "alks.js";
 import * as vscode from "vscode";
-import { getAccountAndRole, getALKSClient } from "./alks";
+import { getAccountAndRole, getAccounts, getALKSClient } from "./alks";
 import { generateConsoleUrl } from "./alks-console";
+import { Cache } from "./cache";
 import { AuthSettings } from "./settings";
 
 const newSession = async () => {
@@ -121,9 +122,27 @@ const openConsole = async () => {
   }
 };
 
+const openSettings = async () => {
+  let choice = await vscode.window.showQuickPick(["Sync Accounts", "Logout"]);
+
+  if (choice?.includes("Sync")) {
+    const accounts = await getAccounts();
+    Cache.instance.setCacheItem("accounts", accounts);
+    console.log(Cache.instance.getCacheItem("accounts"));
+  }
+};
+
 export async function activate(context: vscode.ExtensionContext) {
   console.log("[[ ALKS VSC PLUGIN ACTIVATED ]]\n");
   AuthSettings.init(context);
+  const cache = Cache.init(context);
+
+  // cache the accounts on first run
+  if (!cache.getCacheItem("accounts")) {
+    const accounts = await getAccounts();
+    cache.setCacheItem("accounts", accounts);
+    console.log("cached aws accounts");
+  }
 
   context.subscriptions.push(
     vscode.commands.registerCommand("alks-vsc.newSession", newSession)
@@ -131,6 +150,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("alks-vsc.newConsole", openConsole)
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("alks-vsc.openSettings", openSettings)
   );
 }
 

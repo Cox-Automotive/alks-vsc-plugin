@@ -66,3 +66,10 @@ export const getAccountAndRole = async (
 
   return [acct, role];
 };
+
+export const getAccounts = async (): Promise<ALKS.Account[]> => {
+  const client = await getALKSClient();
+  const accounts: ALKS.Account[] = await client.getAccounts();
+
+  return accounts;
+};

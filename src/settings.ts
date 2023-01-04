@@ -1,5 +1,7 @@
+import { Account as ALKSAccount } from "alks.js";
 import { ExtensionContext, SecretStorage, window, workspace } from "vscode";
 import { isValidRefreshToken } from "./alks";
+import { Cache } from "./cache";
 
 export class AuthSettings {
   private static _instance: AuthSettings;
@@ -41,8 +43,19 @@ export class AuthSettings {
     return workspace.getConfiguration("alks").get("server");
   }
 
-  getAccounts(): [string] | undefined {
-    return workspace.getConfiguration("alks").get("accounts");
+  getAccounts(): string[] | undefined {
+    const workspaceAccounts = workspace
+      .getConfiguration("alks")
+      .get("accounts") as string[];
+    const allAccounts = Cache.instance
+      .getCacheItem<ALKSAccount[]>("accounts")!
+      .map((a) => a.account);
+
+    return [
+      ...workspaceAccounts,
+      "--------------------------------",
+      ...allAccounts,
+    ];
   }
 
   async validate(): Promise<void> {
@@ -79,12 +92,6 @@ export class AuthSettings {
       console.log("Securely storing refresh token.");
 
       this.storeRefreshToken(token);
-    }
-
-    const accounts = this.getAccounts();
-
-    if (!accounts || !Array.isArray(accounts) || !accounts.length) {
-      throw new Error("Please setup alks.accounts in settings.");
     }
   }
 }

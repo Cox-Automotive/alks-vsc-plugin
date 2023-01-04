@@ -22,6 +22,10 @@
       {
         "command": "alks-vsc.newConsole",
         "title": "ALKS: Open Console"
+      },
+      {
+        "command": "alks-vsc.openSettings",
+        "title": "ALKS: Settings"
       }
     ],
     "configuration": {
