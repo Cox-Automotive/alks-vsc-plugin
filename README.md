@@ -18,7 +18,7 @@ This extension contributes the following settings:
 
 ## Installation Instructions
 
-1. Download `alks-vsc.vsix`
+1. Download [alks.vsix](dist/alks.vsix)
 2. In VS Code open the extensions panel, click the elipsis in the top right corner and select _Install from VSIX_.
 
 ## Known Issues

@@ -1,5 +1,5 @@
 out
-dist
+dist/*
+!dist/alks.vsix
 node_modules
 .vscode-test/
-*.vsix
