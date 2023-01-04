@@ -30,7 +30,6 @@ export const getALKSClient = async (): Promise<ALKS.Alks> => {
 
     throw new Error("Unable to authenticate token.");
   }
-  Settings.instance.deleteRefreshToken();
 
   try {
     console.log(

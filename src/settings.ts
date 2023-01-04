@@ -32,6 +32,8 @@ export class Settings {
       );
       this.refreshToken = token;
       await this.secretStorage.store("alks_token", token);
+      // Cache.instance.setCacheItem("alks_token", token);
+      console.log("[settings:storeRefreshToken] token saved!");
     } else {
       console.warn(
         `[settings:storeRefreshToken] Tried to store invalid token: ${token}`
@@ -46,7 +48,10 @@ export class Settings {
   async getRefreshToken(): Promise<string | undefined> {
     if (!this.refreshToken) {
       this.refreshToken = await this.secretStorage.get("alks_token");
+      // this.refreshToken = Cache.instance.getCacheItem("alks_token");
     }
+
+    console.log(`[settings:getRefreshToken]`);
 
     if (!this.refreshToken) {
       console.warn("[settings:getRefreshToken] Missing refresh token!");
@@ -65,6 +70,7 @@ export class Settings {
   async deleteRefreshToken(): Promise<void> {
     await this.secretStorage.store("alks_token", "");
     await this.secretStorage.delete("alks_token");
+    // Cache.instance.deleteCacheItem("alks_token");
     this.refreshToken = undefined;
   }
 
@@ -124,7 +130,7 @@ export class Settings {
       });
 
       if (!token || !token.length) {
-        throw new Error("Please enter a refresh token to continue;");
+        return;
       }
 
       const validToken = await isValidRefreshToken(token);
@@ -135,9 +141,9 @@ export class Settings {
       console.log("[settings:validate] Securely storing refresh token.");
       await this.storeRefreshToken(token);
 
-      console.log("[settings:validate] Caching accounts");
       const cache = Cache.instance;
       if (!cache.getCacheItem("accounts")) {
+        console.log("[settings:validate] Caching accounts");
         try {
           const accounts = await getAccounts();
           cache.setCacheItem("accounts", accounts);
@@ -149,5 +155,6 @@ export class Settings {
         }
       }
     }
+    console.log("[settings:validate] COMPLETED");
   }
 }

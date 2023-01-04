@@ -34,6 +34,7 @@ export class Cache {
    * @returns {<T>} Cached item
    */
   getCacheItem<T>(key: string): T | undefined {
+    console.log(`[cache:getCacheItem]: get "${key}"`);
     return this.state.get<T>(key);
   }
 
@@ -43,6 +44,16 @@ export class Cache {
    * @param {<T>} value Item to cache
    */
   setCacheItem<T>(key: string, value: T): void {
+    console.log(`[cache:setCacheItem]: set "${key}"`);
     this.state.update(key, value);
+  }
+
+  /**
+   * Removes an item from the cache.
+   * @param {string} key Key to remove
+   */
+  deleteCacheItem(key: string): void {
+    console.log(`[cache:deleteCacheItem]: delete "${key}"`);
+    this.state.update(key, undefined);
   }
 }

@@ -64,5 +64,4 @@ export const newSession = async ():Promise<void> => {
   vscode.window.showInformationMessage(
     "AWS terminal credentials are now on your clipboard."
   );
-  await Settings.instance.deleteRefreshToken();
 };
