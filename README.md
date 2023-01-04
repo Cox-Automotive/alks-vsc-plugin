@@ -1,28 +1,33 @@
-# ALKS4VSCODE
+# ALKS_4_VSCODE
 
 ALKS plugin for Visual Studio Code.
+
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Generate STS credentials for your ALKS accounts that you can drop into your active terminal. (`ALKS: New Session`)
+- Open the AWS console for any ALKS account (`ALKS: Open Console`)
+
+To re-syncronize your available accounts or to logout use the settings command: `ALKS: Settings`.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `alks.server`: The base URL for your ALKS server. Be sure to end with `/rest`.
+* `alks.accounts`: A string array of ALKS project specific accounts. These will be displayed at the top of the account pick list.
+
+## Installation Instructions
+
+1. Download `alks-vsc.vsix`
+2. In VS Code open the extensions panel, click the elipsis in the top right corner and select _Install from VSIX_.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+No known issues.
 
 ## Release Notes
 
-Heres whats new.
+First release!
 
 ### 1.0.0
 
