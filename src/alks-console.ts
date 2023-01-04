@@ -4,6 +4,11 @@ import fetch from "node-fetch";
 const AWS_SIGNIN_URL = "https://signin.aws.amazon.com/federation",
   AWS_CONSOLE_URL = "https://console.aws.amazon.com/";
 
+/**
+ * Generates a signed AWS console URL for the provided STS session.
+ * @param {Key} key ALKS STS session
+ * @returns {Promise<string>} Signed console URL
+ */
 export async function generateConsoleUrl(key: Key): Promise<string> {
   const payload = {
     sessionId: key.accessKey,

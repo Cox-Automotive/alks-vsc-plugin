@@ -5,6 +5,7 @@ import { Cache } from "./cache";
 
 /**
  * Settings class for managing extension settings and preferences.
+ * @class
  */
 export class Settings {
   private static _instance: Settings;
