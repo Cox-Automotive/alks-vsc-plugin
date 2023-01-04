@@ -5,11 +5,15 @@ import { generateConsoleUrl } from "../alks-console";
 import { Settings } from "../settings";
 console.log("<new console>");
 
-export const newConsole = async () => {
+/**
+ * Creats a new AWS console session for the specified AWS account and opens it in the system's browser.
+ */
+export const newConsole = async ():Promise<void> => {
   try {
     Settings.instance.validate();
   } catch (e: any) {
-    return vscode.window.showErrorMessage(e?.message);
+    vscode.window.showErrorMessage(e?.message);
+    return;
   }
 
   let client: ALKS.Alks;
@@ -31,7 +35,8 @@ export const newConsole = async () => {
     );
     [account, role] = await getAccountAndRole(rawAccount);
   } catch (e: any) {
-    return vscode.window.showErrorMessage(e?.message);
+     vscode.window.showErrorMessage(e?.message);
+     return;
   }
 
   try {

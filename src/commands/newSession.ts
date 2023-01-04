@@ -3,12 +3,17 @@ import * as vscode from "vscode";
 import { getAccountAndRole, getALKSClient } from "../alks";
 import { Settings } from "../settings";
 
-export const newSession = async () => {
+
+/**
+ * Creates a new ALKS session for the specified account and copys the credentials to the
+ */
+export const newSession = async ():Promise<void> => {
   console.log("<new session>");
   try {
     Settings.instance.validate();
   } catch (e: any) {
-    return vscode.window.showErrorMessage(e?.message);
+    vscode.window.showErrorMessage(e?.message);
+    return;
   }
 
   let client: ALKS.Alks;
@@ -30,7 +35,8 @@ export const newSession = async () => {
     );
     [account, role] = await getAccountAndRole(rawAccount);
   } catch (e: any) {
-    return vscode.window.showErrorMessage(e?.message);
+    vscode.window.showErrorMessage(e?.message);
+    return;
   }
 
   try {
