@@ -1,5 +1,5 @@
 import * as ALKS from "alks.js";
-import { AuthSettings } from "./settings";
+import { Settings } from "./settings";
 
 export const getALKSClient = async (): Promise<ALKS.Alks> => {
   let client: ALKS.Alks;
@@ -7,10 +7,10 @@ export const getALKSClient = async (): Promise<ALKS.Alks> => {
 
   try {
     client = ALKS.create({
-      baseUrl: AuthSettings.instance.getServer(),
+      baseUrl: Settings.instance.getServer(),
     } as ALKS.AlksProps);
-    const refreshToken = await AuthSettings.instance.getRefreshToken();
-    console.log(`Exchanging refresh token for access token: "${refreshToken}"`);
+    const refreshToken = await Settings.instance.getRefreshToken();
+    console.log(`Exchanging refresh token for access token`);
     accessToken = await client.getAccessToken({
       refreshToken,
     } as ALKS.GetAccessTokenProps);
@@ -22,12 +22,12 @@ export const getALKSClient = async (): Promise<ALKS.Alks> => {
 
     throw new Error("Unable to authenticate token.");
   }
-  AuthSettings.instance.deleteRefreshToken();
+  Settings.instance.deleteRefreshToken();
 
   try {
     console.log(`Creating ALKS client with access token auth.`);
     client = ALKS.create({
-      baseUrl: AuthSettings.instance.getServer()!,
+      baseUrl: Settings.instance.getServer()!,
       accessToken: accessToken.accessToken,
     });
   } catch (e: any) {
@@ -42,7 +42,7 @@ export const isValidRefreshToken = async (token: string): Promise<boolean> => {
   try {
     console.log("Validating refresh token from user.");
     await ALKS.getAccessToken({
-      baseUrl: AuthSettings.instance.getServer(),
+      baseUrl: Settings.instance.getServer(),
       refreshToken: token,
     });
   } catch (e: any) {
@@ -64,7 +64,7 @@ export const getAccountAndRole = async (
     );
   }
 
-  return [acct, role];
+  return [acct.split("/")[0], role];
 };
 
 export const getAccounts = async (): Promise<ALKS.Account[]> => {

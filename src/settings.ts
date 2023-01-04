@@ -3,18 +3,18 @@ import { ExtensionContext, SecretStorage, window, workspace } from "vscode";
 import { isValidRefreshToken } from "./alks";
 import { Cache } from "./cache";
 
-export class AuthSettings {
-  private static _instance: AuthSettings;
+export class Settings {
+  private static _instance: Settings;
   private refreshToken: string | undefined;
 
   constructor(private secretStorage: SecretStorage) {}
 
   static init(context: ExtensionContext): void {
-    AuthSettings._instance = new AuthSettings(context.secrets);
+    Settings._instance = new Settings(context.secrets);
   }
 
-  static get instance(): AuthSettings {
-    return AuthSettings._instance;
+  static get instance(): Settings {
+    return Settings._instance;
   }
 
   async storeRefreshToken(token?: string): Promise<void> {
@@ -29,9 +29,7 @@ export class AuthSettings {
       this.refreshToken = await this.secretStorage.get("alks_token");
     }
 
-    return this.refreshToken && this.refreshToken.length
-      ? this.refreshToken
-      : undefined;
+    return this.refreshToken?.length ? this.refreshToken : undefined;
   }
 
   async deleteRefreshToken(): Promise<void> {
