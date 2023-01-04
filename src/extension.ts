@@ -3,12 +3,12 @@ import * as vscode from "vscode";
 import { getAccountAndRole, getAccounts, getALKSClient } from "./alks";
 import { generateConsoleUrl } from "./alks-console";
 import { Cache } from "./cache";
-import { AuthSettings } from "./settings";
+import { Settings } from "./settings";
 
 const newSession = async () => {
   console.log("<new session>");
   try {
-    AuthSettings.instance.validate();
+    Settings.instance.validate();
   } catch (e: any) {
     return vscode.window.showErrorMessage(e?.message);
   }
@@ -28,7 +28,7 @@ const newSession = async () => {
 
   try {
     let rawAccount = await vscode.window.showQuickPick(
-      AuthSettings.instance.getAccounts()!
+      Settings.instance.getAccounts()!
     );
     [account, role] = await getAccountAndRole(rawAccount);
   } catch (e: any) {
@@ -36,16 +36,14 @@ const newSession = async () => {
   }
 
   try {
-    console.log(
-      `Requesting STS credentials for "${account}" with role "${role}.`
-    );
-    keys = await client.getIAMKeys({
-      // FIXME: iam
-      account,
-      role,
-      sessionTime: 1,
-    });
-
+    const opts = { account, role, sessionTime: 1 };
+    if (role.toLowerCase().includes("iam")) {
+      console.log(`Requesting IAM creds for "${account}" role "${role}"`);
+      keys = await client.getIAMKeys(opts);
+    } else {
+      console.log(`Requesting creds for "${account}" role "${role}"`);
+      keys = await client.getKeys(opts);
+    }
     console.log("Received STS credentials.");
   } catch (e: any) {
     console.error(`Error getting keys: "${e?.message}"`);
@@ -58,13 +56,13 @@ const newSession = async () => {
   vscode.window.showInformationMessage(
     "AWS terminal credentials are now on your clipboard."
   );
-  await AuthSettings.instance.deleteRefreshToken();
+  await Settings.instance.deleteRefreshToken();
 };
 
 const openConsole = async () => {
   console.log("<open console>");
   try {
-    AuthSettings.instance.validate();
+    Settings.instance.validate();
   } catch (e: any) {
     return vscode.window.showErrorMessage(e?.message);
   }
@@ -84,7 +82,7 @@ const openConsole = async () => {
 
   try {
     let rawAccount = await vscode.window.showQuickPick(
-      AuthSettings.instance.getAccounts()!
+      Settings.instance.getAccounts()!
     );
     [account, role] = await getAccountAndRole(rawAccount);
   } catch (e: any) {
@@ -92,16 +90,14 @@ const openConsole = async () => {
   }
 
   try {
-    console.log(
-      `Requesting STS credentials for "${account}" with role "${role}.`
-    );
-
-    keys = await client.getIAMKeys({
-      // FIXME: iam
-      account,
-      role,
-      sessionTime: 1,
-    });
+    const opts = { account, role, sessionTime: 1 };
+    if (role.toLowerCase().includes("iam")) {
+      console.log(`Requesting IAM creds for "${account}" role "${role}"`);
+      keys = await client.getIAMKeys(opts);
+    } else {
+      console.log(`Requesting creds for "${account}" role "${role}"`);
+      keys = await client.getKeys(opts);
+    }
 
     console.log("Received STS credentials.");
   } catch (e: any) {
@@ -112,7 +108,6 @@ const openConsole = async () => {
 
   try {
     const url: string = await generateConsoleUrl(keys);
-    console.log(`Got GUI URL `); //: ${url}`);
 
     vscode.env.openExternal(vscode.Uri.parse(url));
   } catch (e: any) {
@@ -129,12 +124,17 @@ const openSettings = async () => {
     const accounts = await getAccounts();
     Cache.instance.setCacheItem("accounts", accounts);
     console.log(Cache.instance.getCacheItem("accounts"));
+  } else if (choice === "Logout") {
+    console.log("Deleting auth token");
+    Settings.instance.deleteRefreshToken();
+  } else {
+    console.log("Invalid settings selection");
   }
 };
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log("[[ ALKS VSC PLUGIN ACTIVATED ]]\n");
-  AuthSettings.init(context);
+  Settings.init(context);
   const cache = Cache.init(context);
 
   // cache the accounts on first run
