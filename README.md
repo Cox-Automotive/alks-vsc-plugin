@@ -22,12 +22,10 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-No known issues.
+- Currently unsupported on Windows. Looking for contributors!
 
-## Release Notes
 
-First release!
+### 1.1.0
 
-### 1.0.0
+AWS session variables are now exported automatically into the specified terminal instance.
 
-Initial release of ALKS VSCode Plugin
