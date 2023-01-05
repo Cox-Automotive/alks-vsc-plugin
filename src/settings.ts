@@ -83,6 +83,14 @@ export class Settings {
   }
 
   /**
+   * Retrieves the shell type from workspace configuration.
+   * @returns {string} The shell type
+   */
+  getShell(): string {
+    return workspace.getConfiguration("alks").get("shell")!;
+  }
+
+  /**
    * Retrieves the workspace's ALKS accounts as well as the user's ALKS accounts.
    * @returns {string[]} Array of account names.
    */

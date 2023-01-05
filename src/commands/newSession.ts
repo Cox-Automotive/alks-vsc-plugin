@@ -88,18 +88,23 @@ export const newSession = async (): Promise<void> => {
     return;
   }
 
-  // @ts-ignore: 2339
-  const shell = terminal.creationOptions.shellPath;
-  console.log(`[newSession]: got shell "${shell}`);
-  vscode.window.showInformationMessage(`Shell: ${shell}`);
-  let cmd = `export AWS_ACCESS_KEY_ID=${keys.accessKey} && export AWS_SECRET_ACCESS_KEY=${keys.secretKey} && export AWS_SESSION_TOKEN=${keys.sessionToken}`;
+  const shellType = Settings.instance.getShell();
+  let cmd: string;
 
-  // TODO: powershell
-  // if (false) {
-  //   cmd = `$env:AWS_ACCESS_KEY_ID, $env:AWS_SECRET_ACCESS_KEY, $env:AWS_SESSION_TOKEN = "${keys.accessKey}","${keys.secretKey}","${keys.sessionToken}"`;
-  // }
+  switch (shellType) {
+    case "powershell":
+      cmd = `$env:AWS_ACCESS_KEY_ID, $env:AWS_SECRET_ACCESS_KEY, $env:AWS_SESSION_TOKEN = "${keys.accessKey}","${keys.secretKey}","${keys.sessionToken}"`;
+      break;
+    case "cmd":
+      `SET AWS_ACCESS_KEY_ID=${keys.accessKey} && SET AWS_SECRET_ACCESS_KEY=${keys.secretKey} && SET AWS_SESSION_TOKEN=${keys.sessionToken}`;
+      break;
+    case "bash":
+    default:
+      cmd = `export AWS_ACCESS_KEY_ID=${keys.accessKey} && export AWS_SECRET_ACCESS_KEY=${keys.secretKey} && export AWS_SESSION_TOKEN=${keys.sessionToken}`;
+  }
 
-  terminal.sendText(cmd);
+  console.log(`[newSession]: shell "${shellType}`);
+  terminal.sendText(cmd!);
 
   vscode.window.showInformationMessage(
     "Your AWS session has been configured in your terminal."

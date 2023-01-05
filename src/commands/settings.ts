@@ -7,7 +7,7 @@ import { Settings } from "../settings";
  * Settings command for various extension settings.
  */
 export const openSettings = async () => {
-  let choice = await vscode.window.showQuickPick(["Sync Accounts", "Logout"]);
+  const choice = await vscode.window.showQuickPick(["Sync Accounts", "Logout"]);
 
   if (choice?.includes("Sync")) {
     const accounts = await getAccounts();

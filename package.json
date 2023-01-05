@@ -55,6 +55,17 @@
           "default": null,
           "scope": "window",
           "description": "List of ALKS accounts used by the application."
+        },
+        "alks.shell": {
+          "type": "string",
+          "default": "bash",
+          "enum": [
+            "bash",
+            "cmd",
+            "powershell"
+          ],
+          "scope": "resource",
+          "description": "The shell type to use. "
         }
       },
       "configuration": {
