@@ -80,7 +80,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "package": "vsce package",
+    "package": "vsce package && mv alks-vsc*.vsix dist/alks.vsix",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",

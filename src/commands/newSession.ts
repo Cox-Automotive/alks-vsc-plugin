@@ -90,6 +90,8 @@ export const newSession = async (): Promise<void> => {
 
   // @ts-ignore: 2339
   const shell = terminal.creationOptions.shellPath;
+  console.log(`[newSession]: got shell "${shell}`);
+  vscode.window.showInformationMessage(`Shell: ${shell}`);
   let cmd = `export AWS_ACCESS_KEY_ID=${keys.accessKey} && export AWS_SECRET_ACCESS_KEY=${keys.secretKey} && export AWS_SESSION_TOKEN=${keys.sessionToken}`;
 
   // TODO: powershell
