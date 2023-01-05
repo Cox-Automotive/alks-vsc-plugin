@@ -94,9 +94,11 @@ export class Settings {
       .getCacheItem<ALKSAccount[]>("accounts")!
       .map((a) => a.account);
 
+    // TODO: remove workspace accounts from all accounts list?
     return [
+      "[ Workspace Accounts ]",
       ...workspaceAccounts,
-      "--------------------------------",
+      "[ All Accounts ]",
       ...allAccounts,
     ];
   }
