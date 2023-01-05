@@ -11,22 +11,23 @@ const selectTerminal = async (): Promise<vscode.Terminal> => {
 
   const terminals = <vscode.Terminal[]>(<any>vscode.window).terminals;
 
-  const items: TerminalQuickPickItem[] = terminals.map((t) => {
-    return {
-      label: `name: ${t.name}`,
-      terminal: t,
-    };
-  });
-
-  let terminal = await vscode.window.showQuickPick(items).then((item) => {
-    return item ? item.terminal : undefined;
-  });
-
-  if (!terminal) {
+  let terminal;
+  if (terminals.length) {
+    const items: TerminalQuickPickItem[] = terminals.map((t) => {
+      return {
+        label: `Terminal: ${t.name}`,
+        terminal: t,
+      };
+    });
+    terminal = await vscode.window.showQuickPick(items).then((item) => {
+      return item ? item.terminal : undefined;
+    });
+  } else {
+    console.log("[newSession] no active terminal, creating one");
     terminal = await vscode.window.createTerminal(`ALKS Terminal`);
   }
 
-  return terminal;
+  return terminal!;
 };
 
 /**
