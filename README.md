@@ -4,7 +4,7 @@ ALKS plugin for Visual Studio Code.
 
 ## Features
 
-- Generate STS credentials for your ALKS accounts that you can drop into your active terminal. (`ALKS: New Session`)
+- Generate STS credentials for your ALKS accounts that you can drop into a bash terminal. (`ALKS: New Session`)
 - Open the AWS console for any ALKS account (`ALKS: Open Console`)
 
 To re-syncronize your available accounts or to logout use the settings command: `ALKS: Settings`.
