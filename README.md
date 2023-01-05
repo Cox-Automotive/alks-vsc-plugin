@@ -4,10 +4,9 @@ ALKS plugin for Visual Studio Code.
 
 ## Features
 
-- Generate STS credentials for your ALKS accounts that you can drop into a bash terminal. (`ALKS: New Session`)
+- Generate STS credentials for your ALKS accounts which are automagically exported to the selected terminal. (`ALKS: New Session`)
 - Open the AWS console for any ALKS account (`ALKS: Open Console`)
-
-To re-syncronize your available accounts or to logout use the settings command: `ALKS: Settings`.
+- To re-syncronize your available accounts or to logout use the settings command: `ALKS: Settings`.
 
 ## Extension Settings
 
@@ -23,12 +22,10 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-No known issues.
+- Currently unsupported on Windows. Looking for contributors!
 
-## Release Notes
 
-First release!
+### 1.1.0
 
-### 1.0.0
+AWS session variables are now exported automatically into the specified terminal instance.
 
-Initial release of ALKS VSCode Plugin
