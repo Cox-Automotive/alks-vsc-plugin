@@ -4,10 +4,35 @@ import { getAccountAndRole, getALKSClient } from "../alks";
 import { Settings } from "../settings";
 
 
+const selectTerminal = async (): Promise<vscode.Terminal> => {
+  interface TerminalQuickPickItem extends vscode.QuickPickItem {
+    terminal: vscode.Terminal;
+  }
+
+  const terminals = <vscode.Terminal[]>(<any>vscode.window).terminals;
+
+  const items: TerminalQuickPickItem[] = terminals.map((t) => {
+    return {
+      label: `name: ${t.name}`,
+      terminal: t,
+    };
+  });
+
+  let terminal = await vscode.window.showQuickPick(items).then((item) => {
+    return item ? item.terminal : undefined;
+  });
+
+  if (!terminal) {
+    terminal = await vscode.window.createTerminal(`ALKS Terminal`);
+  }
+
+  return terminal;
+};
+
 /**
  * Creates a new ALKS session for the specified account and copys the credentials to the
  */
-export const newSession = async ():Promise<void> => {
+export const newSession = async (): Promise<void> => {
   console.log("[newSession] <new session>");
   try {
     await Settings.instance.validate();
@@ -15,6 +40,9 @@ export const newSession = async ():Promise<void> => {
     vscode.window.showErrorMessage(e?.message);
     return await newSession();
   }
+
+  console.log("[newSession] fetching active terminal");
+  const terminal = await selectTerminal();
 
   let client: ALKS.Alks;
   let keys: any;
@@ -59,9 +87,18 @@ export const newSession = async ():Promise<void> => {
     return;
   }
 
-  const exporty = `export AWS_ACCESS_KEY_ID=${keys.accessKey} && export AWS_SECRET_ACCESS_KEY=${keys.secretKey} && export AWS_SESSION_TOKEN=${keys.sessionToken}`;
-  vscode.env.clipboard.writeText(exporty);
+  // @ts-ignore: 2339
+  const shell = terminal.creationOptions.shellPath;
+  let cmd = `export AWS_ACCESS_KEY_ID=${keys.accessKey} && export AWS_SECRET_ACCESS_KEY=${keys.secretKey} && export AWS_SESSION_TOKEN=${keys.sessionToken}`;
+
+  // TODO: powershell
+  // if (false) {
+  //   cmd = `$env:AWS_ACCESS_KEY_ID, $env:AWS_SECRET_ACCESS_KEY, $env:AWS_SESSION_TOKEN = "${keys.accessKey}","${keys.secretKey}","${keys.sessionToken}"`;
+  // }
+
+  terminal.sendText(cmd);
+
   vscode.window.showInformationMessage(
-    "AWS terminal credentials are now on your clipboard."
+    "Your AWS session has been configured in your terminal."
   );
 };
