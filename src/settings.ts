@@ -98,17 +98,26 @@ export class Settings {
     const workspaceAccounts = workspace
       .getConfiguration("alks")
       .get("accounts") as string[];
-    const allAccounts = Cache.instance
+
+    let allAccounts = Cache.instance
       .getCacheItem<ALKSAccount[]>("accounts")!
       .map((a) => a.account);
 
+    const accounts = [];
+    if (workspaceAccounts) {
+      accounts.push("[ Workspace Accounts ]");
+      accounts.push(...workspaceAccounts);
+      accounts.push("[ All Accounts ]");
+
+      allAccounts = allAccounts.filter(
+        (allAccount) => !workspaceAccounts.includes(allAccount)
+      );
+    }
+
+    accounts.push(...allAccounts);
+
     // TODO: remove workspace accounts from all accounts list?
-    return [
-      "[ Workspace Accounts ]",
-      ...workspaceAccounts,
-      "[ All Accounts ]",
-      ...allAccounts,
-    ];
+    return accounts;
   }
 
   /**
